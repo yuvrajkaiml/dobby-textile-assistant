@@ -1,0 +1,9 @@
+Flask>=2.0
+groq>=1.0.0
+python-dotenv>=1.0
+
+# Optional: Install additional providers for model comparison
+# For OpenAI: pip install openai
+# For Anthropic: pip install anthropic
+
+# Install all providers: pip install openai anthropic

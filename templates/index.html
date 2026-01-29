@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dobby Textile Design Assistant</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Dobby Textile Design Assistant</h1>
+      <p style="color:#666;margin-top:0">Ask about yarn-dyed fabrics, dobby patterns, warp & weft behavior, and design parameters.</p>
+      <div id="chat" class="chat" aria-live="polite"></div>
+
+      <form id="chat-form" class="chat-form">
+        <input id="user-input" autocomplete="off" placeholder="Type a message..." aria-label="Message input" />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+
+    <script src="/static/chat.js"></script>
+  </body>
+</html>
