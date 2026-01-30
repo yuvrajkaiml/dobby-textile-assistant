@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from groq_client import get_response
+from llm_provider import LLMProviderFactory
 from config import SYSTEM_PROMPT, get_provider_name
 
 # Load environment variables from .env file
@@ -21,7 +21,9 @@ while True:
     
     messages.append({"role": "user", "content": user_input})
     
-    reply = get_response(messages)
+    provider_name = get_provider_name()
+    provider = LLMProviderFactory.get_provider(provider_name)
+    reply = provider.get_response(messages)
     print("Bot:", reply, "\n")
     
     messages.append({"role": "assistant", "content": reply})

@@ -1,23 +1,93 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dobby Textile Design Assistant</title>
-    <link rel="stylesheet" href="/static/styles.css" />
-  </head>
-  <body>
-    <div class="container">
-      <h1>Dobby Textile Design Assistant</h1>
-      <p style="color:#666;margin-top:0">Ask about yarn-dyed fabrics, dobby patterns, warp & weft behavior, and design parameters.</p>
-      <div id="chat" class="chat" aria-live="polite"></div>
 
-      <form id="chat-form" class="chat-form">
-        <input id="user-input" autocomplete="off" placeholder="Type a message..." aria-label="Message input" />
-        <button type="submit">Send</button>
-      </form>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Dobby AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Chat Interface -->
+    <div class="chat-panel">
+      <div class="chat-header">
+        <h1>🧵 Design Dobby AI</h1>
+        <p class="subtitle">Natural Language → Dobby Parameters</p>
+      </div>
+
+      <div id="chat-box" class="chat-messages">
+        <div class="message bot">
+          <div class="message-content">
+            <strong>Welcome!</strong> Describe the fabric pattern you want, and I'll generate the precise parameters for
+            the Dobby generator.
+            <br><br>
+            <em>Examples:</em>
+            <ul>
+              <li>"Black and white check pattern"</li>
+              <li>"Premium plaid with rich colors"</li>
+              <li>"Subtle gradient stripes"</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <input type="text" id="user-input" placeholder="Describe your design intent..." autofocus>
+        <button onclick="sendMessage()">Generate</button>
+      </div>
     </div>
 
-    <script src="/static/chat.js"></script>
-  </body>
+    <!-- Parameters Panel -->
+    <div class="parameters-panel">
+      <div class="panel-header">
+        <h2>⚙️ Generated Parameters</h2>
+        <div class="status-row">
+          <span class="status-badge" id="status-badge">Ready</span>
+          <span class="confidence" id="confidence-display">—</span>
+        </div>
+      </div>
+
+      <!-- Parameter Summary -->
+      <div id="param-summary" class="param-summary">
+        <div class="summary-item">
+          <span class="label">Intent:</span>
+          <span class="value" id="summary-intent">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Template:</span>
+          <span class="value" id="summary-template">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Mode:</span>
+          <span class="value" id="summary-mode">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Colors:</span>
+          <span class="value" id="summary-colors">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Style:</span>
+          <span class="value" id="summary-style">—</span>
+        </div>
+      </div>
+
+      <!-- JSON Output -->
+      <div class="json-section">
+        <div class="json-header">
+          <span>Raw JSON</span>
+          <button class="copy-btn" onclick="copyJSON()">📋 Copy</button>
+        </div>
+        <pre id="json-output" class="json-viewer">// Parameters will appear here...</pre>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='chat.js') }}"></script>
+</body>
+
 </html>

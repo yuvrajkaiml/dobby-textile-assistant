@@ -46,7 +46,7 @@ class GroqProvider(LLMProvider):
         from groq import Groq
 
         self.api_key = api_key or os.getenv("GROQ_API_KEY")
-        self.model = "llama3-8b-8192"
+        self.model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
         self.client = None
         if self.api_key:
             self.client = Groq(api_key=self.api_key)
@@ -148,12 +148,16 @@ class OpenRouterProvider(LLMProvider):
         from openai import OpenAI
 
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
-        self.model = model
+        self.model = model or os.getenv("OPENROUTER_MODEL", "groq/groq-4.1-fast")
         self.client = None
         if self.api_key:
             self.client = OpenAI(
                 api_key=self.api_key,
-                base_url="https://openrouter.io/api/v1"
+                base_url="https://openrouter.ai/api/v1",
+                default_headers={
+                    "HTTP-Referer": "https://github.com/yuvrajkaiml/dobby-textile-assistant",
+                    "X-Title": "Dobby Textile Assistant"
+                }
             )
 
     def get_response(self, messages: List[Dict[str, str]]) -> str:
@@ -176,6 +180,38 @@ class OpenRouterProvider(LLMProvider):
         return self.api_key is not None
 
 
+
+class MockProvider(LLMProvider):
+    """Mock LLM provider for testing and development without API keys."""
+
+    def __init__(self):
+        self.model = "mock-model"
+
+    def get_response(self, messages: List[Dict[str, str]]) -> str:
+        """Get a mock response."""
+        last_user_message = next(
+            (m['content'] for m in reversed(messages) if m['role'] == 'user'),
+            "No question asked."
+        )
+        return (
+            f"**[MOCK RESPONSE]**\n\n"
+            f"I received your message: '{last_user_message}'\n\n"
+            f"Since I am running in **Mock Mode**, I cannot generate a real AI response. "
+            f"To get real responses, please configure an API key for Groq, OpenAI, or Anthropic in the `.env` file.\n\n"
+            f"Example configuration:\n"
+            f"```\n"
+            f"LLM_PROVIDER=groq\n"
+            f"GROQ_API_KEY=your_key_here\n"
+            f"```"
+        )
+
+    def get_model_name(self) -> str:
+        return self.model
+
+    def is_configured(self) -> bool:
+        return True
+
+
 class LLMProviderFactory:
     """Factory for creating and managing LLM providers."""
 
@@ -184,6 +220,7 @@ class LLMProviderFactory:
         "openai": OpenAIProvider,
         "anthropic": AnthropicProvider,
         "openrouter": OpenRouterProvider,
+        "mock": MockProvider,
     }
 
     @classmethod

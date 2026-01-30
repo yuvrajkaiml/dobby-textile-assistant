@@ -1,7 +1,8 @@
 import os
+import json
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify
-from groq_client import get_response
+from llm_provider import LLMProviderFactory
 from config import SYSTEM_PROMPT, get_provider_name
 
 # Load environment variables from .env file
@@ -28,8 +29,27 @@ def chat():
     if not any(m.get('role') == 'system' for m in messages):
         messages.insert(0, { 'role': 'system', 'content': SYSTEM_PROMPT })
     try:
-        reply = get_response(messages)
-        return jsonify({'reply': reply})
+        provider_name = get_provider_name()
+        provider = LLMProviderFactory.get_provider(provider_name)
+        reply = provider.get_response(messages)
+        
+        # Try to parse the reply as JSON
+        try:
+            # Clean up potential markdown code blocks
+            clean_reply = reply.strip()
+            if clean_reply.startswith("```json"):
+                clean_reply = clean_reply[7:]
+            if clean_reply.startswith("```"):
+                clean_reply = clean_reply[3:]
+            if clean_reply.endswith("```"):
+                clean_reply = clean_reply[:-3]
+                
+            structured_reply = json.loads(clean_reply)
+            return jsonify({'reply': reply, 'structured': structured_reply})
+        except json.JSONDecodeError:
+            # Fallback for when LLM fails to output valid JSON
+            return jsonify({'reply': reply, 'structured': None})
+            
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

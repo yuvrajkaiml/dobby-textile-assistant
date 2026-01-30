@@ -39,7 +39,8 @@ def example_multiple_providers():
     print("=" * 60)
 
     question = "How does stripe width affect visual density in dobby patterns?"
-    providers_to_test = ['groq', 'openai', 'anthropic', 'openrouter']
+    # providers_to_test = ['groq', 'openai', 'anthropic', 'openrouter']
+    providers_to_test = ['groq', 'openrouter']
 
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
