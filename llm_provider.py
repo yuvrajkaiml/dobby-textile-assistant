@@ -59,8 +59,8 @@ class GroqProvider(LLMProvider):
         completion = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
-            temperature=0.7,
-            max_tokens=512
+            temperature=0.3,  # Lower temp for more consistent JSON
+            max_tokens=2048   # Increased to allow full schema output
         )
         return completion.choices[0].message.content
 
@@ -143,15 +143,19 @@ class OpenRouterProvider(LLMProvider):
     Supports models like groq/groq-4.1-fast.
     """
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "groq/groq-4.1-fast"):
+    def __init__(self, api_key: Optional[str] = None, model: str = None):
         import os
-        from openai import OpenAI
+        from openai import OpenAI as OpenAIClient
 
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
-        self.model = model or os.getenv("OPENROUTER_MODEL", "groq/groq-4.1-fast")
+        
+        # Parse potential comma-separated list of models for fallback
+        env_model = os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-r1:free,deepseek/deepseek-r1-distill-llama-70b:free,google/gemini-2.0-flash-exp:free")
+        self.models = [m.strip() for m in (model or env_model).split(',') if m.strip()]
+        
         self.client = None
         if self.api_key:
-            self.client = OpenAI(
+            self.client = OpenAIClient(
                 api_key=self.api_key,
                 base_url="https://openrouter.ai/api/v1",
                 default_headers={
@@ -161,17 +165,27 @@ class OpenRouterProvider(LLMProvider):
             )
 
     def get_response(self, messages: List[Dict[str, str]]) -> str:
-        """Get response from OpenRouter API."""
+        """Get response from OpenRouter API with model fallback."""
         if not self.is_configured():
             raise ValueError("OpenRouter API key not configured. Set OPENROUTER_API_KEY environment variable.")
         
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            temperature=0.7,
-            max_tokens=512
-        )
-        return response.choices[0].message.content
+        errors = []
+        for model in self.models:
+            try:
+                # print(f"Trying model: {model}...") # Debugging
+                response = self.client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=0.3,
+                    max_tokens=2048
+                )
+                return response.choices[0].message.content
+            except Exception as e:
+                errors.append(f"{model}: {str(e)}")
+                continue
+        
+        # If all models fail
+        raise Exception(f"All OpenRouter models failed. Errors: {'; '.join(errors)}")
 
     def get_model_name(self) -> str:
         return self.model
@@ -188,22 +202,58 @@ class MockProvider(LLMProvider):
         self.model = "mock-model"
 
     def get_response(self, messages: List[Dict[str, str]]) -> str:
-        """Get a mock response."""
+        """Get a mock response in valid JSON format."""
+        import json
         last_user_message = next(
             (m['content'] for m in reversed(messages) if m['role'] == 'user'),
             "No question asked."
         )
-        return (
-            f"**[MOCK RESPONSE]**\n\n"
-            f"I received your message: '{last_user_message}'\n\n"
-            f"Since I am running in **Mock Mode**, I cannot generate a real AI response. "
-            f"To get real responses, please configure an API key for Groq, OpenAI, or Anthropic in the `.env` file.\n\n"
-            f"Example configuration:\n"
-            f"```\n"
-            f"LLM_PROVIDER=groq\n"
-            f"GROQ_API_KEY=your_key_here\n"
-            f"```"
-        )
+        
+        # detailed mock response matching schema
+        mock_response = {
+            "intent": "check",
+            "template": "classic_check",
+            "confidence": 0.99,
+            "clarification_required": False,
+            "question": None,
+            "parameters": {
+                "unit": "Ends",
+                "colors": 2,
+                "ground": 0,
+                "generate_range": {"from_value": 96, "to_value": 192},
+                "generate_mode": "Check",
+                "epi_ppi": True,
+                "checks": {
+                    "regular": True,
+                    "balance_checks": True,
+                    "graded": False,
+                    "counter": False,
+                    "even_warp": True,
+                    "even_weft": True,
+                    "weave": False
+                },
+                "fil_a_fil": {"enabled": False, "mode": "Auto"},
+                "design_style": "Solid",
+                "mode": "Normal",
+                "solid_mode": {
+                    "stripe_width_min": 2,
+                    "stripe_width_max": 8,
+                    "multi_factor_min": 1,
+                    "multi_factor_max": 2
+                },
+                "gradient_mode": None,
+                "color_mapping": {"color1": "Black", "color2": "White", "color3": None, "color4": None},
+                "display_swatch": {"x": 4, "y": 4}
+            },
+            "visual_metadata": {
+                "fabric_type": "Cotton",
+                "gloss": 0.1,
+                "texture_noise": 0.2,
+                "cross_section": "Circular"
+            }
+        }
+        
+        return json.dumps(mock_response)
 
     def get_model_name(self) -> str:
         return self.model

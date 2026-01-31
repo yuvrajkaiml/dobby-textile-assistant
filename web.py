@@ -36,18 +36,26 @@ def chat():
         # Try to parse the reply as JSON
         try:
             # Clean up potential markdown code blocks
+            import re
             clean_reply = reply.strip()
-            if clean_reply.startswith("```json"):
-                clean_reply = clean_reply[7:]
-            if clean_reply.startswith("```"):
-                clean_reply = clean_reply[3:]
-            if clean_reply.endswith("```"):
-                clean_reply = clean_reply[:-3]
+            
+            # Remove markdown code fences
+            clean_reply = re.sub(r'^```json\s*', '', clean_reply)
+            clean_reply = re.sub(r'^```\s*', '', clean_reply)
+            clean_reply = re.sub(r'\s*```$', '', clean_reply)
+            clean_reply = clean_reply.strip()
+            
+            # Try to extract JSON object if embedded in text
+            json_match = re.search(r'\{[\s\S]*\}', clean_reply)
+            if json_match:
+                clean_reply = json_match.group()
                 
             structured_reply = json.loads(clean_reply)
             return jsonify({'reply': reply, 'structured': structured_reply})
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
             # Fallback for when LLM fails to output valid JSON
+            print(f"JSON Parse Error: {e}")
+            print(f"Raw reply: {reply[:500]}...")
             return jsonify({'reply': reply, 'structured': None})
             
     except Exception as e:

@@ -89,6 +89,8 @@ function updateParameters(data) {
   setTimeout(() => {
     jsonOutput.style.backgroundColor = '#0d1117';
   }, 200);
+
+
 }
 
 function copyJSON() {
@@ -172,6 +174,8 @@ async function sendMessage() {
     userInput.focus();
   }
 }
+
+
 
 // Focus on load
 window.addEventListener('load', () => userInput.focus());

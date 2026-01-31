@@ -281,6 +281,8 @@ button:active {
   color: var(--text);
 }
 
+
+
 /* JSON Section */
 .json-section {
   flex: 1;

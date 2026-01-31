@@ -109,6 +109,21 @@ class DobbyParameters(TypedDict):
 
 
 # ============================================================================
+# VISUAL SIMULATION (Frontend Only - Not sent to Dobby Engine)
+# ============================================================================
+
+class MaterialSimulation(TypedDict):
+    """
+    Visual metadata for the frontend previewer.
+    This does NOT affect the Dobby Engine - it controls how the preview is rendered.
+    """
+    fabric_type: Literal["Cotton", "Silk", "Wool", "Linen", "Polyester"]
+    gloss: float  # 0.0 (matte) to 1.0 (glossy)
+    texture_noise: float  # 0.0 (smooth) to 1.0 (fuzzy/hairy)
+    cross_section: Literal["Circular", "Elliptical", "Flattened"]
+
+
+# ============================================================================
 # AI RESPONSE STRUCTURE
 # ============================================================================
 
@@ -123,6 +138,9 @@ class IntentResponse(TypedDict):
     clarification_required: bool         # True if AI needs more info
     question: Optional[str]              # Clarifying question (if required)
     parameters: Optional[DobbyParameters]  # Generated parameters (if not clarifying)
+    
+    # NEW: Visual metadata for frontend previewer
+    visual_metadata: Optional[MaterialSimulation]
 
 
 # ============================================================================
