@@ -1,95 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Design Dobby AI</title>
+  <title>Yarn Dyed Shirting – Design Studio</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
-    rel="stylesheet">
 </head>
-
 <body>
-  <div class="container">
-    <!-- Chat Interface -->
-    <div class="chat-panel">
-      <div class="chat-header">
-        <h1>🧵 Design Dobby AI</h1>
-        <p class="subtitle">Natural Language → Dobby Parameters</p>
-      </div>
 
-      <div id="chat-box" class="chat-messages">
-        <div class="message bot">
-          <div class="message-content">
-            <strong>Welcome!</strong> Describe the fabric pattern you want, and I'll generate the precise parameters for
-            the Dobby generator.
-            <br><br>
-            <em>Examples:</em>
-            <ul>
-              <li>"Black and white check pattern"</li>
-              <li>"Premium plaid with rich colors"</li>
-              <li>"Subtle gradient stripes"</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+<header class="app-header">
+  <div class="logo">TEXTRONICS DESIGNDOBBY AI</div>
+  <div class="subtitle">Yarn Dyed Shirting · Buyer Design Studio</div>
+</header>
 
-      <div class="chat-input-area">
-        <input type="text" id="user-input" placeholder="Describe your design intent..." autofocus>
-        <button onclick="sendMessage()">Generate</button>
-      </div>
+<main class="container">
+
+  <!-- DESIGN INPUT -->
+  <section class="card">
+    <h2>Design Input</h2>
+
+    <label>Input Method</label>
+    <div class="input-mode">
+      <label>
+        <input type="radio" name="inputMode" checked
+               onchange="switchInputMode('prompt')">
+        By Buyer Prompt
+      </label>
+      <label>
+        <input type="radio" name="inputMode"
+               onchange="switchInputMode('image')">
+        By Upload Image
+      </label>
     </div>
 
-    <!-- Parameters Panel -->
-    <div class="parameters-panel">
-      <div class="panel-header">
-        <h2>⚙️ Generated Parameters</h2>
-        <div class="status-row">
-          <span class="status-badge" id="status-badge">Ready</span>
-          <span class="confidence" id="confidence-display">—</span>
+    <!-- PROMPT MODE -->
+    <div id="promptContainer">
+      <label>Search Design Prompt</label>
+        <div class="input-clear-wrapper">
+        <input id="promptInput"
+                list="promptList"
+                placeholder="Business shirt in blue and pink, Burberry checks…">
+        <span class="clear-btn" onclick="clearPrompt()">×</span>
         </div>
+      <datalist id="promptList"></datalist>
+
+      <button id="generateBtn" onclick="getFromPrompt()">Get Properties from Prompt</button>
+    </div>
+
+    <!-- IMAGE MODE -->
+    <div id="imageContainer" style="display:none;">
+      <label>Upload Reference Image</label>
+      <input type="file" id="imageInput" accept="image/*"
+             onchange="onImageSelected()">
+      <div id="imageInfo" class="hint"></div>
+
+      <button class="secondary" onclick="getFromImage()">
+        Get Properties from Image
+      </button>
+    </div>
+  </section>
+
+  <!-- DESIGN PROPERTIES -->
+  <section class="card">
+    <h2>Design Properties</h2>
+
+    <div class="form-grid">
+
+      <div>
+        <label>Design Size</label>
+        <select id="designSize"></select>
+
+        <label>Design Size Range (cm)</label>
+        <div class="range-group">
+          <input id="designSizeMin" type="number" placeholder="Min">
+          <input id="designSizeMax" type="number" placeholder="Max">
+        </div>
+
+        <label>Design Style</label>
+        <select id="designStyle"></select>
+
+        <label>Weave</label>
+        <select id="weave"></select>
+
+        <label>Color Composition</label>
+        <input id="colorComposition" type="text">
       </div>
 
-      <!-- Parameter Summary -->
-      <div id="param-summary" class="param-summary">
-        <div class="summary-item">
-          <span class="label">Intent:</span>
-          <span class="value" id="summary-intent">—</span>
+      <div>
+        <label>Stripe Size Range (mm)</label>
+        <div class="range-group">
+          <input id="stripeSizeMin" type="number" placeholder="Min">
+          <input id="stripeSizeMax" type="number" placeholder="Max">
         </div>
-        <div class="summary-item">
-          <span class="label">Template:</span>
-          <span class="value" id="summary-template">—</span>
+
+        <label>Stripe Multiply Range (times)</label>
+        <div class="range-group">
+          <input id="stripeRepeatMin" type="number" placeholder="Min">
+          <input id="stripeRepeatMax" type="number" placeholder="Max">
         </div>
-        <div class="summary-item">
-          <span class="label">Mode:</span>
-          <span class="value" id="summary-mode">—</span>
-        </div>
-        <div class="summary-item">
-          <span class="label">Colors:</span>
-          <span class="value" id="summary-colors">—</span>
-        </div>
-        <div class="summary-item">
-          <span class="label">Style:</span>
-          <span class="value" id="summary-style">—</span>
-        </div>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="isSymmetry">
+          Symmetry Pattern
+        </label>
+
+        <label>Contrast Level</label>
+        <select id="contrastLevel"></select>
+
+        <label>Occasion</label>
+        <select id="occasion"></select>
       </div>
 
+    </div>
+  </section>
 
+  <!-- OUTPUT -->
+  <section class="card">
+    <h2>Design Output</h2>
 
-      <!-- JSON Output -->
-      <div class="json-section">
-        <div class="json-header">
-          <span>Raw JSON</span>
-          <button class="copy-btn" onclick="copyJSON()">📋 Copy</button>
-        </div>
-        <pre id="json-output" class="json-viewer">// Parameters will appear here...</pre>
+    <div class="summary-grid">
+      <div>
+        <h3>Design Summary</h3>
+        <div id="summaryBox"></div>
+      </div>
+
+      <div>
+        <h3>API / Mock JSON</h3>
+        <pre id="jsonBox" class="json-box">{}</pre>
       </div>
     </div>
-  </div>
+  </section>
 
-  <script src="{{ url_for('static', filename='chat.js') }}"></script>
+</main>
+
+<footer class="app-footer">
+  © 2026 Company Name
+</footer>
+
+<script src="{{ url_for('static', filename='promptData.js') }}"></script>
+<script src="{{ url_for('static', filename='chat.js') }}"></script>
 </body>
-
 </html>
